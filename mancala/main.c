@@ -161,30 +161,35 @@ int update_store (int store_idx, int seeds)
 void draw_board(void)
 {
     
-    printf("\n");
+    // Line 1 - Player 1 Labels
+    printf("             6  5  4  3  2  1       <-- P1\n");
     
-    // Line 1
-    printf("P1     ---- ");
+    // Line 2 - Player 1 pods
+    printf("       ---- ");
     for (int i = HOLES_IN_BOARD / 2 - 2; i >= 0; i--)
     {
         printf("%02d ", board[i]);
     }
     printf("----\n");
     
-    // Line 2
-    printf("    (P1) %02d", board[STORE_P1_IDX]);
-    printf(" -- -- -- -- -- -- ");
-    printf("%02d (P2)\n", board[STORE_P2_IDX]);
+    // Line 3 - Player stores and middle border
+    printf("        %02d", board[STORE_P1_IDX]);
+    printf("  -- -- -- -- -- -- ");
+    printf(" %02d\n", board[STORE_P2_IDX]);
     
-    // Line 3
-    printf("P2     ---- ");
+    // Line 4 - Player 2 pods
+    printf("       ---- ");
     for (int i = HOLES_IN_BOARD / 2; i < HOLES_IN_BOARD - 1; i++)
     {
         printf("%02d ", board[i]);
     }
     printf("----\n");
     
-    printf("\n*************************************\n");
+    // Line 5 - Player 2 Labels
+    printf("P2 -->       1  2  3  4  5  6\n");
+    
+    // Botton Border
+    printf("*************************************\n\n");
 }
 
 int parsestr (const char *s)

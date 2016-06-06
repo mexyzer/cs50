@@ -88,6 +88,9 @@
 		E310AB191D03DB0600B51407 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				KnownAssetTags = (
+					New,
+				);
 				LastUpgradeCheck = 0730;
 				ORGANIZATIONNAME = "aaron basch";
 				TargetAttributes = {
