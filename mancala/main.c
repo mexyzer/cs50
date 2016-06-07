@@ -29,7 +29,7 @@
 #define PLAYER_2 1
 #define USER_MAX 16
 
-// Mancala game board. Global structure manupilated by all helper functions
+// Mancala game board. Global structure manipilated by all helper functions
 int board[HOLES_IN_BOARD];
 
 int check_pod_across(int pod_idx);
@@ -389,6 +389,16 @@ int get_side(int pod_idx)
     return pod_idx < POD_START_P2_IDX ? PLAYER_1 : PLAYER_2;
 }
 
+/**
+ * Function: int getUserInput (char *s, int n)
+ * Description: Captures a string from the user from standard input stream
+ * The string is then truncated by a character limit set in the function
+ * to protect against buffer overflow.
+ * The string is further saniztized by trimming all leading and trailer whitespace character
+ * Inputs: char *s, int n (the number of characters to be stored in the char *s buffer.
+ * Outputs: int. Returns number of spaces trimmed. On failure returns -1.
+ **/
+
 int getUserInput (char *s, int n)
 {
     if ((fgets(s, n, stdin)) == NULL)
@@ -397,10 +407,26 @@ int getUserInput (char *s, int n)
     return trim(s);
 }
 
+/**
+ * Function: bool is_side_empty(int pod_idx)
+ * Description: Checks to see if a specified side of the board is empty( e.g. 6 contiguous pods)
+ * has a total of zero seeds.
+ * Inputs: int pod_idx (use POD_START_P1_PDX or POD_START_P1_PDX respecitvely)
+ * Outputs: Returns true if side is empty. Otherwise false
+ **/
+
 bool is_side_empty(int pod_idx)
 {
     return get_side_sum(pod_idx) == 0;
 }
+
+/**
+ * Function: int select_pod(int player)
+ * Description: Selects the pod for the current player's turn
+ * Sanitzed user input is validated and player is prompted until a valid pod is selected.
+ * Inputs: int player (Current player whose turn it is)
+ * Outputs: int selected_idx (selected index on the board of the pod the user has selected)
+ **/
 
 int select_pod(int player)
 {
@@ -440,6 +466,13 @@ int select_pod(int player)
     }
 }
 
+/**
+ * Function:
+ * Description:
+ * Inputs:
+ * Outputs:
+ **/
+
 int select_pod_cpu (int player)
 {
     
@@ -457,15 +490,36 @@ int select_pod_cpu (int player)
     
 }
 
+/**
+ * Function:
+ * Description:
+ * Inputs:
+ * Outputs:
+ **/
+
 bool in_own_store(int player, int hole)
 {
     return (player == PLAYER_1 && hole == STORE_P1_IDX)  || (player == PLAYER_2 && hole == STORE_P2_IDX);
 }
 
+/**
+ * Function:
+ * Description:
+ * Inputs:
+ * Outputs:
+ **/
+
 bool is_store(int hole)
 {
     return hole == STORE_P1_IDX || hole == STORE_P2_IDX;
 }
+
+/**
+ * Function:
+ * Description:
+ * Inputs:
+ * Outputs:
+ **/
 
 // Checks for and sets gameover flag
 bool set_gameover(bool *gameover)
@@ -473,6 +527,13 @@ bool set_gameover(bool *gameover)
     *gameover = is_side_empty(POD_START_P1_IDX) || is_side_empty(POD_START_P2_IDX);
     return gameover;
 }
+
+/**
+ * Function:
+ * Description:
+ * Inputs:
+ * Outputs:
+ **/
 
 void transfer_seeds(void)
 {
@@ -485,10 +546,24 @@ void transfer_seeds(void)
     clear_pods();
 }
 
+/**
+ * Function:
+ * Description:
+ * Inputs:
+ * Outputs:
+ **/
+
 int switch_player(int player)
 {
     return 1 - player;
 }
+
+/**
+ * Function:
+ * Description:
+ * Inputs:
+ * Outputs:
+ **/
 
 const char *turn_message(unsigned short code)
 {
@@ -499,6 +574,13 @@ const char *turn_message(unsigned short code)
         default : return NULL;
     }
 }
+
+/**
+ * Function:
+ * Description:
+ * Inputs:
+ * Outputs:
+ **/
 
 int rtrim (char *s)
 {
@@ -528,6 +610,13 @@ int rtrim (char *s)
     return space_ctr;
 }
 
+/**
+ * Function:
+ * Description:
+ * Inputs:
+ * Outputs:
+ **/
+
 int ltrim (char *s)
 {
     char tmp[USER_MAX];
@@ -548,10 +637,24 @@ int ltrim (char *s)
     return space_ctr;
 }
 
+/**
+ * Function:
+ * Description:
+ * Inputs:
+ * Outputs:
+ **/
+
 int trim (char *s)
 {
     return rtrim(s) + ltrim(s);
 }
+
+/**
+ * Function:
+ * Description:
+ * Inputs:
+ * Outputs:
+ **/
 
 int ui_set_cpu_options (void)
 {
