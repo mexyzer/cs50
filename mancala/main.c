@@ -1,13 +1,13 @@
 /**
  * Mancala
  * 4/1/2016
- * Basch
+ * Aaron Basch
+ * CS50 Final Project
+ *
+ * Text-based version of the game mancala.
+ * Play with a friend or against the computer.
+ *
  **/
-
-// TODOS
-// Documentation
-// Comment functions
-// Sort functions and prototypes alphabetically
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,6 +29,7 @@
 #define PLAYER_2 1
 #define USER_MAX 16
 
+// Mancala game board. Global structure manupilated by all helper functions
 int board[HOLES_IN_BOARD];
 
 int check_pod_across(int pod_idx);
@@ -62,24 +63,25 @@ int main (void)
 {
     // Init Game
     printf("#######\nMANCALA!\n2016\n#######\n");
+    
     int turn_ctr = 0;
     bool gameover = false;
     int player;
     int cpu = ui_set_cpu_options();
     player = PLAYER_1;
-    init_board();
     
+    init_board();
     draw_board();
     
     // Game Loop
     while (true)
     {
+        // Setup player's turn
         ++turn_ctr;
         printf("%sPlayer %d's Turn\n", player == cpu ? "CPU " : "", player + 1);
         
         bool go_again = false;
         
-        // int selected = select_pod(player);
         int selected = (player == cpu) ? select_pod_cpu(player) : select_pod(player);
         draw_board();
         
@@ -87,6 +89,7 @@ int main (void)
         int opposite_hole = check_pod_across(last_hole);
         int msg_num = 0;
         
+        // Check turn end against game rules
         if (in_own_store(player, last_hole))
         {
             msg_num = 1;
@@ -114,7 +117,7 @@ int main (void)
             player = switch_player(player);
     }
     
-    // Game Over
+    // Process Game Over
     transfer_seeds();
     printf("Game Over: %d turns.\n", turn_ctr);
     
@@ -136,6 +139,13 @@ int main (void)
     return 0;
 }
 
+/**
+ * Function: void init_board(void)
+ * Description: Fills holes in board wih seeds
+ * Inputs: None
+ * Outputs: None
+ **/
+
 void init_board(void)
 {
     for (int hole = 0; hole <= HOLES_IN_BOARD; hole++)
@@ -151,13 +161,25 @@ void init_board(void)
     }
 }
 
-// Adds seeds to current value inside store
+/**
+ * Function: int update_store (int store_idx, int seeds)
+ * Description: Adds seeds to a specified player store
+ * Inputs: store_idx (store index), int seeds
+ * Outputs: int store_idx (store index)
+ **/
+
 int update_store (int store_idx, int seeds)
 {
     board[store_idx] += seeds;
     return board[store_idx];
 }
 
+/**
+ * Function: void draw_board(void)
+ * Description: Draws the board on the screen
+ * Inputs: none
+ * Outputs: none
+ **/
 void draw_board(void)
 {
     
@@ -192,6 +214,15 @@ void draw_board(void)
     printf("*************************************\n\n");
 }
 
+/**
+ * Function: int parsestr (const char *s)
+ * Description: Processes sanitized user input.
+ * Used for selecting a valid space on the board or quitting the game.
+ * To refactor: Consider breaking up into smaller functions.
+ * Inputs: char *s
+ * Outputs: int. Returns a positive integer, otherwise if no valid option is chosen then -1
+ **/
+
 int parsestr (const char *s)
 {
     if (strlen(s) != 1)
@@ -200,6 +231,7 @@ int parsestr (const char *s)
     }
     else if (toupper(s[0]) == 'Q')
     {
+        // Option to quit game
         char option[USER_MAX];
         printf("Do you want to quit? [Y/N]\n");
         
@@ -213,6 +245,7 @@ int parsestr (const char *s)
     }
     else if (isdigit(s[0]))
     {
+        // Select hole number from board
         int num = s[0] - '0';
         if (!(num >= 1 && num <= 6))
         {
@@ -231,7 +264,15 @@ int parsestr (const char *s)
     return -1;
 }
 
-// Returns the index of where the last seed was dropped
+/**
+ * Function: int traverse_board (int start_idx, int player)
+ * Moves seeds across the board filling each hole one at a time
+ * until the seeds from the initially selected hole are gone.
+ * Inputs: int start_idx (the hole the player selected at the start of their turn),
+ * int player (The current player whose turn it is)
+ * Outputs: int. Returns the index of the hole where the final seed of the turn was dropped
+ **/
+
 int traverse_board (int start_idx, int player)
 {
     
@@ -254,7 +295,16 @@ int traverse_board (int start_idx, int player)
     return i;
 }
 
-// Returns index of board array on the pod across from index provided as argument
+/**
+ * Function: int check_pod_across(int pod_idx)
+ * Use to identify which index is directly across from a selected index.
+ * As in, which hole on the board is directly across from the selected hole.
+ * Inputs: int pod_idx (Index of pod where you want to know which pod is directly on the other side of the board)
+ * Outputs: int. Returns index of the pod directly across the board from index provided as argument.
+ * Will return -1 if an invalid hole index was selected. This is unlikely, but the handler is there for defensive coding.
+ * To refactor: Perhaps make the -1 an exit handler with error message to shut down the game.
+ **/
+
 int check_pod_across(int pod_idx)
 {
     if (is_store(pod_idx) || pod_idx > PODS || pod_idx < POD_START_P1_IDX)
@@ -265,20 +315,49 @@ int check_pod_across(int pod_idx)
     return PODS - pod_idx;
 }
 
+/**
+ * Function: bool pod_is_empty (int pod_idx)
+ * Description: Checks if pod does contain have seeds (e.g. is empty)
+ * Inputs: int pod_idx (Index of pod)
+ * Outputs: Returns true if pod contains no seeds. Otherwise False if pod has one or more seeds.
+ **/
+
 bool pod_is_empty (int pod_idx)
 {
     return board[pod_idx] == 0;
 }
+
+/**
+ * Function: bool one_seed_in_pod (int pod_idx)
+ * Description: Checks if pod contains one (and only one) seed
+ * Inputs: int pod_idx (Index of pod)
+ * Outputs: Returns true if pod contains only one seed. Otherwise False.
+ **/
 
 bool one_seed_in_pod (int pod_idx)
 {
     return board[pod_idx] == 1;
 }
 
+/**
+ * Function: void set_pod_empty(int pod_idx)
+ * Description: Sets number of seeds in pod to zero (e.g. empties the selected pod)
+ * Inputs: int pod_idx (Index of pod)
+ * Outputs: Nothing
+ **/
+
 void set_pod_empty(int pod_idx)
 {
     board[pod_idx] = 0;
 }
+
+/**
+ * Function: void clear_pods(void)
+ * Description: Sets number of seeds in all pods on board to zero (e.g. empties the all pods).
+ * Stores are not emptied, only pods. Useful in transfer_seeds() routine.
+ * Inputs: Nothing
+ * Outputs: Nothing
+ **/
 
 void clear_pods(void)
 {
@@ -286,6 +365,14 @@ void clear_pods(void)
         if (!is_store(i))
             set_pod_empty(i);
 }
+
+/**
+ * Function: int get_side_sum(int pod_idx)
+ * Description: Returns the sum of all seeds on one side of the board (player one or player two's side respectively)
+ * Inputs: int pod_idx (pod index. Be sure to only input the first index of player one or player two's side)
+ * Only input with STORE_P1_IDX or STORE_P2_IDX respectively.
+ * Outputs: Returns the sum of all seeds on one side of the board (player one or player two's side respectively)
+ **/
 
 int get_side_sum(int pod_idx)
 {
