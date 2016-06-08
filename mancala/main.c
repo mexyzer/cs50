@@ -32,7 +32,7 @@
 #define PLAYER_2 1
 #define USER_MAX 16
 
-// Mancala game board. Global structure manipilated by all helper functions
+// Mancala game board. Global structure updated by all helper functions
 int board[HOLES_IN_BOARD];
 
 int check_pod_across(int pod_idx);
@@ -40,7 +40,7 @@ void clear_pods(void);
 void draw_board(void);
 int get_side(int pod_idx);
 int get_side_sum(int pod_idx);
-int getUserInput (char *s, int n);
+int get_user_input (char *s, int n);
 bool in_own_store(int player, int hole);
 void init_board(void);
 bool is_side_empty(int side);
@@ -143,38 +143,38 @@ int main (void)
 }
 
 /**
- * Function: void init_board(void)
- * Description: Fills holes in board wih seeds
- * Inputs: None
- * Outputs: None
+ * Function: int check_pod_across(int pod_idx)
+ * Use to identify which index is directly across from a selected index.
+ * As in, which hole on the board is directly across from the selected hole.
+ * Inputs: int pod_idx (Index of pod where you want to know which pod is directly on the other side of the board)
+ * Outputs: int. Returns index of the pod directly across the board from index provided as argument.
+ * Will return -1 if an invalid hole index was selected. This is unlikely, but the handler is there for defensive coding.
+ * To refactor: Perhaps make the -1 an exit handler with error message to shut down the game.
  **/
 
-void init_board(void)
+int check_pod_across(int pod_idx)
 {
-    for (int hole = 0; hole <= HOLES_IN_BOARD; hole++)
+    if (is_store(pod_idx) || pod_idx > PODS || pod_idx < POD_START_P1_IDX)
     {
-        if (is_store(hole))
-        {
-            set_pod_empty(hole);
-        }
-        else
-        {
-            board[hole] = START_QTY;
-        }
+        return -1;
     }
+    
+    return PODS - pod_idx;
 }
 
 /**
- * Function: int update_store (int store_idx, int seeds)
- * Description: Adds seeds to a specified player store
- * Inputs: store_idx (store index), int seeds
- * Outputs: int store_idx (store index)
+ * Function: void clear_pods(void)
+ * Description: Sets number of seeds in all pods on board to zero (e.g. empties the all pods).
+ * Stores are not emptied, only pods. Useful in transfer_seeds() routine.
+ * Inputs: Nothing
+ * Outputs: Nothing
  **/
 
-int update_store (int store_idx, int seeds)
+void clear_pods(void)
 {
-    board[store_idx] += seeds;
-    return board[store_idx];
+    for (int i = 0; i <= PODS ; i++)
+        if (!is_store(i))
+            set_pod_empty(i);
 }
 
 /**
@@ -217,6 +217,154 @@ void draw_board(void)
     printf("*************************************\n\n");
 }
 
+
+/**
+ * Function: int get_side(int pod_idx)
+ * Description: Returns which side of the board the selected hole is on
+ * Inputs: int pod_idx (pod index)
+ * Outputs: int. Returns the number representing player one or two respecively
+ **/
+
+int get_side(int pod_idx)
+{
+    return pod_idx < POD_START_P2_IDX ? PLAYER_1 : PLAYER_2;
+}
+
+/**
+ * Function: int get_side_sum(int pod_idx)
+ * Description: Returns the sum of all seeds on one side of the board (player one or player two's side respectively)
+ * Inputs: int pod_idx (pod index. Be sure to only input the first index of player one or player two's side)
+ * Only input with STORE_P1_IDX or STORE_P2_IDX respectively.
+ * Outputs: Returns the sum of all seeds on one side of the board (player one or player two's side respectively)
+ **/
+
+int get_side_sum(int pod_idx)
+{
+    int side_sum = 0;
+    for (int i = pod_idx; i != STORE_P1_IDX && i != STORE_P2_IDX; i++)
+        side_sum += board[i];
+    
+    return side_sum;
+}
+
+/**
+ * Function: int get_user_input (char *s, int n)
+ * Description: Captures a string from the user from standard input stream
+ * The string is then truncated by a character limit set in the function
+ * to protect against buffer overflow.
+ * The string is further saniztized by trimming all leading and trailer whitespace character
+ * Inputs: char *s, int n (the number of characters to be stored in the char *s buffer.
+ * Outputs: int. Returns number of spaces trimmed. On failure returns -1.
+ **/
+
+int get_user_input (char *s, int n)
+{
+    if ((fgets(s, n, stdin)) == NULL)
+        return -1;
+    
+    return trim(s);
+}
+
+/**
+ * Function: bool in_own_store(int player, int hole)
+ * Description: Checks if current hole is a store that belongs to a player
+ * Inputs: int player (player whose turn it is), int hole (hole currently on during turn)
+ * Outputs: bool. Returns true if the selected hole is a store and belongs to the player.
+ * otherwise false
+ **/
+
+bool in_own_store(int player, int hole)
+{
+    return (player == PLAYER_1 && hole == STORE_P1_IDX)  || (player == PLAYER_2 && hole == STORE_P2_IDX);
+}
+
+/**
+ * Function: void init_board(void)
+ * Description: Fills holes in board wih seeds. Call before starting game.
+ * Inputs: None
+ * Outputs: None
+ **/
+
+void init_board(void)
+{
+    for (int hole = 0; hole <= HOLES_IN_BOARD; hole++)
+    {
+        if (is_store(hole))
+        {
+            set_pod_empty(hole);
+        }
+        else
+        {
+            board[hole] = START_QTY;
+        }
+    }
+}
+
+/**
+ * Function: bool is_side_empty(int pod_idx)
+ * Description: Checks to see if a specified side of the board is empty( e.g. 6 contiguous pods)
+ * has a total of zero seeds.
+ * Inputs: int pod_idx (use POD_START_P1_PDX or POD_START_P1_PDX respecitvely)
+ * Outputs: Returns true if side is empty. Otherwise false
+ **/
+
+bool is_side_empty(int pod_idx)
+{
+    return get_side_sum(pod_idx) == 0;
+}
+
+/**
+ * Function: bool is_store(int hole)
+ * Description: Checks to see if a selected hole is a store
+ * Inputs: int hole
+ * Outputs: Returns true if hole is a store. Otherwise false.
+ **/
+
+bool is_store(int hole)
+{
+    return hole == STORE_P1_IDX || hole == STORE_P2_IDX;
+}
+
+/**
+ * Function: int ltrim (char *s)
+ * Description: Removes leading white space characters from a string in place.
+ * White space characters are defined in ctype.h
+ * Inputs: char *s. A string to be modified.
+ * Outputs: int. Returns the number of characters trimmed
+ **/
+
+int ltrim (char *s)
+{
+    char tmp[USER_MAX];
+    char *ptr;
+    ptr = s;
+    
+    while (*ptr != '\0' && isspace(*ptr))
+        ptr++;
+    
+    int space_ctr = ptr - s;
+    
+    if (space_ctr > 0)
+    {
+        strncpy(tmp, ptr, sizeof(char) * USER_MAX);
+        strncpy(s, tmp, sizeof(char) * USER_MAX);
+    }
+    
+    return space_ctr;
+}
+
+/**
+ * Function: bool one_seed_in_pod (int pod_idx)
+ * Description: Checks if pod contains one (and only one) seed
+ * Inputs: int pod_idx (Index of pod)
+ * Outputs: Returns true if pod contains only one seed. Otherwise False.
+ **/
+
+bool one_seed_in_pod (int pod_idx)
+{
+    return board[pod_idx] == 1;
+}
+
 /**
  * Function: int parsestr (const char *s)
  * Description: Processes sanitized user input.
@@ -238,7 +386,7 @@ int parsestr (const char *s)
         char option[USER_MAX];
         printf("Do you want to quit? [Y/N]\n");
         
-        getUserInput(option, sizeof(option));
+        get_user_input(option, sizeof(option));
         
         if (toupper(option[0]) == 'Y')
         {
@@ -268,57 +416,6 @@ int parsestr (const char *s)
 }
 
 /**
- * Function: int traverse_board (int start_idx, int player)
- * Moves seeds across the board filling each hole one at a time
- * until the seeds from the initially selected hole are gone.
- * Inputs: int start_idx (the hole the player selected at the start of their turn),
- * int player (The current player whose turn it is)
- * Outputs: int. Returns the index of the hole where the final seed of the turn was dropped
- **/
-
-int traverse_board (int start_idx, int player)
-{
-    
-    int i = start_idx;
-    // Remember seed count from selected hole
-    int seeds = board[start_idx];
-    set_pod_empty(start_idx);
-    
-    while (seeds > 0)
-    {
-        i = (i + 1) % HOLES_IN_BOARD;
-        // Ensure opponent's store gets no seed
-        if((player == PLAYER_1 && i != STORE_P2_IDX) || (player == PLAYER_2 && i != STORE_P1_IDX))
-        {
-            board[i]++;
-            seeds--;
-        }
-    }
-    
-    return i;
-}
-
-/**
- * Function: int check_pod_across(int pod_idx)
- * Use to identify which index is directly across from a selected index.
- * As in, which hole on the board is directly across from the selected hole.
- * Inputs: int pod_idx (Index of pod where you want to know which pod is directly on the other side of the board)
- * Outputs: int. Returns index of the pod directly across the board from index provided as argument.
- * Will return -1 if an invalid hole index was selected. This is unlikely, but the handler is there for defensive coding.
- * To refactor: Perhaps make the -1 an exit handler with error message to shut down the game.
- **/
-
-int check_pod_across(int pod_idx)
-{
-    if (is_store(pod_idx) || pod_idx > PODS || pod_idx < POD_START_P1_IDX)
-    {
-        return -1;
-    }
-    
-    return PODS - pod_idx;
-}
-
-/**
  * Function: bool pod_is_empty (int pod_idx)
  * Description: Checks if pod does contain have seeds (e.g. is empty)
  * Inputs: int pod_idx (Index of pod)
@@ -331,102 +428,52 @@ bool pod_is_empty (int pod_idx)
 }
 
 /**
- * Function: bool one_seed_in_pod (int pod_idx)
- * Description: Checks if pod contains one (and only one) seed
- * Inputs: int pod_idx (Index of pod)
- * Outputs: Returns true if pod contains only one seed. Otherwise False.
+ * Function: int rtrim (char *s)
+ * Description: Removes trailing white space characters from a string in place.
+ * White space characters are defined in ctype.h
+ * Inputs: char *s. A string to be modified.
+ * Outputs: int. Returns the number of characters trimmed
  **/
 
-bool one_seed_in_pod (int pod_idx)
+int rtrim (char *s)
 {
-    return board[pod_idx] == 1;
-}
-
-/**
- * Function: void set_pod_empty(int pod_idx)
- * Description: Sets number of seeds in pod to zero (e.g. empties the selected pod)
- * Inputs: int pod_idx (Index of pod)
- * Outputs: Nothing
- **/
-
-void set_pod_empty(int pod_idx)
-{
-    board[pod_idx] = 0;
-}
-
-/**
- * Function: void clear_pods(void)
- * Description: Sets number of seeds in all pods on board to zero (e.g. empties the all pods).
- * Stores are not emptied, only pods. Useful in transfer_seeds() routine.
- * Inputs: Nothing
- * Outputs: Nothing
- **/
-
-void clear_pods(void)
-{
-    for (int i = 0; i <= PODS ; i++)
-        if (!is_store(i))
-            set_pod_empty(i);
-}
-
-/**
- * Function: int get_side_sum(int pod_idx)
- * Description: Returns the sum of all seeds on one side of the board (player one or player two's side respectively)
- * Inputs: int pod_idx (pod index. Be sure to only input the first index of player one or player two's side)
- * Only input with STORE_P1_IDX or STORE_P2_IDX respectively.
- * Outputs: Returns the sum of all seeds on one side of the board (player one or player two's side respectively)
- **/
-
-int get_side_sum(int pod_idx)
-{
-    int side_sum = 0;
-    for (int i = pod_idx; i != STORE_P1_IDX && i != STORE_P2_IDX; i++)
-        side_sum += board[i];
+    int space_ctr = 0;
+    char *ptr = s;
     
-    return side_sum;
-}
-
-/**
- * Function: int get_side(int pod_idx)
- * Description: Returns which side of the board the selected hole is on
- * Inputs: int pod_idx (pod index)
- * Outputs: int. Returns the number representing player one or two respecively
- **/
-
-int get_side(int pod_idx)
-{
-    return pod_idx < POD_START_P2_IDX ? PLAYER_1 : PLAYER_2;
-}
-
-/**
- * Function: int getUserInput (char *s, int n)
- * Description: Captures a string from the user from standard input stream
- * The string is then truncated by a character limit set in the function
- * to protect against buffer overflow.
- * The string is further saniztized by trimming all leading and trailer whitespace character
- * Inputs: char *s, int n (the number of characters to be stored in the char *s buffer.
- * Outputs: int. Returns number of spaces trimmed. On failure returns -1.
- **/
-
-int getUserInput (char *s, int n)
-{
-    if ((fgets(s, n, stdin)) == NULL)
-        return -1;
+    ptr += (strlen(s) - 1 );
+    int ctr = strlen(s);
     
-    return trim(s);
+    while (ctr >= 0)
+    {
+        if (!isspace(*ptr))
+        {
+            *(ptr + 1) = '\0';
+            break;
+        }
+        else
+        {
+            space_ctr++;
+        }
+        
+        ptr--;
+        ctr--;
+        
+    }
+    
+    return space_ctr;
 }
 
 /**
- * Function: bool is_side_empty(int pod_idx)
- * Description: Checks to see if a specified side of the board is empty( e.g. 6 contiguous pods)
- * has a total of zero seeds.
- * Inputs: int pod_idx (use POD_START_P1_PDX or POD_START_P1_PDX respecitvely)
- * Outputs: Returns true if side is empty. Otherwise false
+ * Function:
+ * Description: Checks for game over criteria and sets gameover flag
+ * Inputs: bool *gameover. Pointer to variable in gameloop is modified in place
+ * Outputs: bool. Returns true if game over criteria is satisfied. Otherwise false.
  **/
 
-bool is_side_empty(int pod_idx)
+bool set_gameover(bool *gameover)
 {
-    return get_side_sum(pod_idx) == 0;
+    *gameover = is_side_empty(POD_START_P1_IDX) || is_side_empty(POD_START_P2_IDX);
+    return gameover;
 }
 
 /**
@@ -449,7 +496,7 @@ int select_pod(int player)
         while (true)
         {
             printf("Select a space [1 - 6], or Quit Game [Q]\n");
-            getUserInput(myStr, sizeof(myStr));
+            get_user_input(myStr, sizeof(myStr));
             
             if ((selected = parsestr(myStr)) > 0)
                 break;
@@ -500,42 +547,27 @@ int select_pod_cpu (int player)
 }
 
 /**
- * Function: bool in_own_store(int player, int hole)
- * Description: Checks if current hole is a store that belongs to a player
- * Inputs: int player (player whose turn it is), int hole (hole currently on during turn)
- * Outputs: bool. Returns true if the selected hole is a store and belongs to the player.
- * otherwise false
+ * Function: void set_pod_empty(int pod_idx)
+ * Description: Sets number of seeds in pod to zero (e.g. empties the selected pod)
+ * Inputs: int pod_idx (Index of pod)
+ * Outputs: Nothing
  **/
 
-bool in_own_store(int player, int hole)
+void set_pod_empty(int pod_idx)
 {
-    return (player == PLAYER_1 && hole == STORE_P1_IDX)  || (player == PLAYER_2 && hole == STORE_P2_IDX);
+    board[pod_idx] = 0;
 }
 
 /**
- * Function: bool is_store(int hole)
- * Description: Checks to see if a selected hole is a store
- * Inputs: int hole
- * Outputs: Returns true if hole is a store. Otherwise false.
+ * Function: int switch_player(int player)
+ * Description: Toggle from player 1 to player 2 or vice-versa.
+ * Inputs: int player (The current player)
+ * Outputs: int. Returns a numeric representation of the other player
  **/
 
-bool is_store(int hole)
+int switch_player(int player)
 {
-    return hole == STORE_P1_IDX || hole == STORE_P2_IDX;
-}
-
-/**
- * Function:
- * Description:
- * Inputs:
- * Outputs:
- **/
-
-// Checks for and sets gameover flag
-bool set_gameover(bool *gameover)
-{
-    *gameover = is_side_empty(POD_START_P1_IDX) || is_side_empty(POD_START_P2_IDX);
-    return gameover;
+    return 1 - player;
 }
 
 /**
@@ -557,15 +589,47 @@ void transfer_seeds(void)
 }
 
 /**
- * Function: int switch_player(int player)
- * Description: Toggle from player 1 to player 2 or vice-versa.
- * Inputs: int player (The current player)
- * Outputs: int. Returns a numeric representation of the other player
+ * Function: int traverse_board (int start_idx, int player)
+ * Moves seeds across the board filling each hole one at a time
+ * until the seeds from the initially selected hole are gone.
+ * Inputs: int start_idx (the hole the player selected at the start of their turn),
+ * int player (The current player whose turn it is)
+ * Outputs: int. Returns the index of the hole where the final seed of the turn was dropped
  **/
 
-int switch_player(int player)
+int traverse_board (int start_idx, int player)
 {
-    return 1 - player;
+    
+    int i = start_idx;
+    // Remember seed count from selected hole
+    int seeds = board[start_idx];
+    set_pod_empty(start_idx);
+    
+    while (seeds > 0)
+    {
+        i = (i + 1) % HOLES_IN_BOARD;
+        // Ensure opponent's store gets no seed
+        if((player == PLAYER_1 && i != STORE_P2_IDX) || (player == PLAYER_2 && i != STORE_P1_IDX))
+        {
+            board[i]++;
+            seeds--;
+        }
+    }
+    
+    return i;
+}
+
+/**
+ * Function: int trim (char *s)
+ * Description: Removes leading and trailing white space characters from a string in place.
+ * White space characters are defined in ctype.h
+ * Inputs: char *s. A string to be modified.
+ * Outputs: int. Returns the number of characters trimmed
+ **/
+
+int trim (char *s)
+{
+    return rtrim(s) + ltrim(s);
 }
 
 /**
@@ -586,83 +650,6 @@ const char *turn_message(unsigned short code)
 }
 
 /**
- * Function: int rtrim (char *s)
- * Description: Removes trailing white space characters from a string in place.
- * White space characters are defined in ctype.h
- * Inputs: char *s. A string to be modified.
- * Outputs: int. Returns the number of characters trimmed
- **/
-
-int rtrim (char *s)
-{
-    int space_ctr = 0;
-    char *ptr = s;
-    
-    ptr += (strlen(s) - 1 );
-    int ctr = strlen(s);
-    
-    while (ctr >= 0)
-    {
-        if (!isspace(*ptr))
-        {
-            *(ptr + 1) = '\0';
-            break;
-        }
-        else
-        {
-            space_ctr++;
-        }
-        
-        ptr--;
-        ctr--;
-        
-    }
-    
-    return space_ctr;
-}
-
-/**
- * Function: int ltrim (char *s)
- * Description: Removes leading white space characters from a string in place.
- * White space characters are defined in ctype.h
- * Inputs: char *s. A string to be modified.
- * Outputs: int. Returns the number of characters trimmed
- **/
-
-int ltrim (char *s)
-{
-    char tmp[USER_MAX];
-    char *ptr;
-    ptr = s;
-    
-    while (*ptr != '\0' && isspace(*ptr))
-        ptr++;
-    
-    int space_ctr = ptr - s;
-    
-    if (space_ctr > 0)
-    {
-        strncpy(tmp, ptr, sizeof(char) * USER_MAX);
-        strncpy(s, tmp, sizeof(char) * USER_MAX);
-    }
-    
-    return space_ctr;
-}
-
-/**
- * Function: int trim (char *s)
- * Description: Removes leading and trailing white space characters from a string in place.
- * White space characters are defined in ctype.h
- * Inputs: char *s. A string to be modified.
- * Outputs: int. Returns the number of characters trimmed
- **/
-
-int trim (char *s)
-{
-    return rtrim(s) + ltrim(s);
-}
-
-/**
  * Function: int ui_set_cpu_options (void)
  * Description: User selects game mode, whether to play agains the cpu or not
  * Inputs: Nothing
@@ -676,7 +663,7 @@ int ui_set_cpu_options (void)
     while (true)
     {
         printf("Select from Options [0: \"2-Player VS\", 1: \"VS CPU P1\", 2: \"VS CPU P2\"]\n");
-        getUserInput(option, sizeof(option));
+        get_user_input(option, sizeof(option));
         switch (option[0])
         {
             case '0' : return CPU_OFF;
@@ -685,4 +672,17 @@ int ui_set_cpu_options (void)
             default: ;
         }
     }
+}
+
+/**
+ * Function: int update_store (int store_idx, int seeds)
+ * Description: Adds seeds to a specified player store
+ * Inputs: store_idx (store index), int seeds
+ * Outputs: int store_idx (store index)
+ **/
+
+int update_store (int store_idx, int seeds)
+{
+    board[store_idx] += seeds;
+    return board[store_idx];
 }
