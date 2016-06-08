@@ -24,7 +24,10 @@
 #define STORE_P2_IDX (HOLES_IN_BOARD - 1)
 #define POD_START_P1_IDX 0
 #define POD_START_P2_IDX (HOLES_IN_BOARD / 2)
+
+// CPU_OFF means do not player against the computer
 #define CPU_OFF -1
+
 #define PLAYER_1 0
 #define PLAYER_2 1
 #define USER_MAX 16
@@ -383,7 +386,13 @@ int get_side_sum(int pod_idx)
     return side_sum;
 }
 
-// Returns numeric representaion of player 1 or 2
+/**
+ * Function: int get_side(int pod_idx)
+ * Description: Returns which side of the board the selected hole is on
+ * Inputs: int pod_idx (pod index)
+ * Outputs: int. Returns the number representing player one or two respecively
+ **/
+
 int get_side(int pod_idx)
 {
     return pod_idx < POD_START_P2_IDX ? PLAYER_1 : PLAYER_2;
@@ -467,10 +476,10 @@ int select_pod(int player)
 }
 
 /**
- * Function:
- * Description:
- * Inputs:
- * Outputs:
+ * Function: int select_pod_cpu (int player)
+ * Description: Computer selects a space during it's turn
+ * Inputs: int player (cpu player whose turn it is)
+ * Outputs: int selected_idx (selected index on the board of the pod the cpu has selected)
  **/
 
 int select_pod_cpu (int player)
@@ -491,10 +500,11 @@ int select_pod_cpu (int player)
 }
 
 /**
- * Function:
- * Description:
- * Inputs:
- * Outputs:
+ * Function: bool in_own_store(int player, int hole)
+ * Description: Checks if current hole is a store that belongs to a player
+ * Inputs: int player (player whose turn it is), int hole (hole currently on during turn)
+ * Outputs: bool. Returns true if the selected hole is a store and belongs to the player.
+ * otherwise false
  **/
 
 bool in_own_store(int player, int hole)
@@ -503,10 +513,10 @@ bool in_own_store(int player, int hole)
 }
 
 /**
- * Function:
- * Description:
- * Inputs:
- * Outputs:
+ * Function: bool is_store(int hole)
+ * Description: Checks to see if a selected hole is a store
+ * Inputs: int hole
+ * Outputs: Returns true if hole is a store. Otherwise false.
  **/
 
 bool is_store(int hole)
@@ -529,10 +539,10 @@ bool set_gameover(bool *gameover)
 }
 
 /**
- * Function:
- * Description:
- * Inputs:
- * Outputs:
+ * Function: void transfer_seeds(void)
+ * Description: Moves any remaining seeds to the designated store. Used during end of game.
+ * Inputs: Nothing
+ * Outputs: Nothing
  **/
 
 void transfer_seeds(void)
@@ -547,10 +557,10 @@ void transfer_seeds(void)
 }
 
 /**
- * Function:
- * Description:
- * Inputs:
- * Outputs:
+ * Function: int switch_player(int player)
+ * Description: Toggle from player 1 to player 2 or vice-versa.
+ * Inputs: int player (The current player)
+ * Outputs: int. Returns a numeric representation of the other player
  **/
 
 int switch_player(int player)
@@ -559,10 +569,10 @@ int switch_player(int player)
 }
 
 /**
- * Function:
- * Description:
- * Inputs:
- * Outputs:
+ * Function: const char *turn_message(unsigned short code)
+ * Description: A message catalog for turns of the game
+ * Inputs: unsigned short. A small integer identifying a message log
+ * Outputs: const char *turn_message.
  **/
 
 const char *turn_message(unsigned short code)
@@ -576,10 +586,11 @@ const char *turn_message(unsigned short code)
 }
 
 /**
- * Function:
- * Description:
- * Inputs:
- * Outputs:
+ * Function: int rtrim (char *s)
+ * Description: Removes trailing white space characters from a string in place.
+ * White space characters are defined in ctype.h
+ * Inputs: char *s. A string to be modified.
+ * Outputs: int. Returns the number of characters trimmed
  **/
 
 int rtrim (char *s)
@@ -611,10 +622,11 @@ int rtrim (char *s)
 }
 
 /**
- * Function:
- * Description:
- * Inputs:
- * Outputs:
+ * Function: int ltrim (char *s)
+ * Description: Removes leading white space characters from a string in place.
+ * White space characters are defined in ctype.h
+ * Inputs: char *s. A string to be modified.
+ * Outputs: int. Returns the number of characters trimmed
  **/
 
 int ltrim (char *s)
@@ -638,10 +650,11 @@ int ltrim (char *s)
 }
 
 /**
- * Function:
- * Description:
- * Inputs:
- * Outputs:
+ * Function: int trim (char *s)
+ * Description: Removes leading and trailing white space characters from a string in place.
+ * White space characters are defined in ctype.h
+ * Inputs: char *s. A string to be modified.
+ * Outputs: int. Returns the number of characters trimmed
  **/
 
 int trim (char *s)
@@ -650,10 +663,10 @@ int trim (char *s)
 }
 
 /**
- * Function:
- * Description:
- * Inputs:
- * Outputs:
+ * Function: int ui_set_cpu_options (void)
+ * Description: User selects game mode, whether to play agains the cpu or not
+ * Inputs: Nothing
+ * Outputs: int. Retuns a numeric value representing the mode of the game
  **/
 
 int ui_set_cpu_options (void)
